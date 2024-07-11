@@ -112,7 +112,7 @@ def gen_blimp_supplement(task_dir,data_dir: str) -> None:
                     {
                         "include": "_template_yaml",
                         "task": "blimp_supplement_" + task,
-                        "dataset_kwargs": {"data_files": os.path.join(data_dir, "blimp_supplement", task + ".jsonl")}
+                        "dataset_kwargs": {"data_files": os.path.join(data_dir, "supplement_filtered", task + ".jsonl")}
                     },
                     f,
                 )
