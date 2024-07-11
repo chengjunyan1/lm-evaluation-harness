@@ -1,3 +1,15 @@
+1. Changed a lot in huggingface.py
+2. Turned off some warnings in task.py
+3. Added BabyLM benchmarks
+4. Turned off F1 in glue, too slow
+
+
+
+
+
+
+
+
 # Language Model Evaluation Harness
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
