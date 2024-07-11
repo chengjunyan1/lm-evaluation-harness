@@ -15,8 +15,8 @@ from accelerate import (
 )
 from huggingface_hub import HfApi
 from packaging import version
-from peft import PeftModel
-from peft import __version__ as PEFT_VERSION
+# from peft import PeftModel
+# from peft import __version__ as PEFT_VERSION
 from tqdm import tqdm
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
@@ -570,6 +570,9 @@ class HFLM(TemplateLM):
             )
 
         if peft:
+            raise NotImplementedError(
+                "PEFT is not currently supported."
+            )
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
@@ -1306,24 +1309,24 @@ class HFLM(TemplateLM):
             else:
                 return ""
 
-        def get_model_sha(pretrained: str, revision: str) -> str:
-            try:
-                model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
-                return model_info.sha
-            except Exception as e:
-                eval_logger.warn(
-                    f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
-                )
-                return ""
+        # def get_model_sha(pretrained: str, revision: str) -> str:
+        #     try:
+        #         model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
+        #         return model_info.sha
+        #     except Exception as e:
+        #         eval_logger.warn(
+        #             f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
+        #         )
+        #         return ""
 
         model_info = {
             "model_num_parameters": get_model_num_params(self._model),
             "model_dtype": get_model_dtype(self._model),
             "model_revision": self.revision,
-            "model_sha": get_model_sha(self.pretrained, self.revision),
+            # "model_sha": get_model_sha(self.pretrained, self.revision),
         }
-        if self.peft:
-            model_info["peft_sha"] = get_model_sha(self.peft, self.revision)
-        if self.delta:
-            model_info["delta_sha"] = get_model_sha(self.delta, self.revision)
+        # if self.peft:
+        #     model_info["peft_sha"] = get_model_sha(self.peft, self.revision)
+        # if self.delta:
+        #     model_info["delta_sha"] = get_model_sha(self.delta, self.revision)
         return model_info

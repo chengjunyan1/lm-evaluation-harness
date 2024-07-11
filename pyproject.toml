@@ -25,7 +25,6 @@ dependencies = [
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
-    "peft>=0.2.0",
     "pybind11>=2.6.2",
     "pytablewriter",
     "rouge-score>=0.0.4",
