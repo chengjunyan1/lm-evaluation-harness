@@ -1,7 +1,8 @@
-1. Changed a lot in huggingface.py
-2. Turned off some warnings in task.py
-3. Added BabyLM benchmarks
-4. Turned off F1 in glue, too slow
+Edits:
+- Changed a lot in huggingface.py
+- Turned off some warnings in task.py
+- Added BabyLM benchmarks
+- Turned off F1 in glue, too slow
 
 
 
