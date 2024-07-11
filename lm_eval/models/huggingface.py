@@ -118,7 +118,7 @@ class HFLM(TemplateLM):
         super().__init__()
 
         # optionally: take in an already-initialized transformers.PreTrainedModel
-        if not isinstance(pretrained, str):
+        if False: # not isinstance(pretrained, str):
             eval_logger.warning(
                 "`pretrained` model kwarg is not of type `str`. Many other model arguments may be ignored. Please do not launch via accelerate or use `parallelize=True` if passing an existing model this way."
             )
@@ -145,59 +145,80 @@ class HFLM(TemplateLM):
 
         else:
             assert isinstance(device, str)
-            assert isinstance(pretrained, str)
+            # assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
+            self._model = pretrained
+            self._device = self._model.device
+            # self._config = self._model.config
+
+            if tokenizer:
+                assert isinstance(
+                    tokenizer, transformers.PreTrainedTokenizer
+                ) or isinstance(tokenizer, transformers.PreTrainedTokenizerFast)
+                self.tokenizer = tokenizer
+            else:
+                # Get tokenizer
+                model_name = self._model.name_or_path
+                self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                    model_name,
+                    revision=revision,
+                    trust_remote_code=trust_remote_code,
+                    use_fast=use_fast_tokenizer,
+                )
 
             gpus = torch.cuda.device_count()
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
+
+            print(f"Accelerator: {accelerator}, gpus: {gpus}, n_processes: {accelerator.num_processes}")
+            print(f"Rank: {accelerator.local_process_index}, World size: {accelerator.num_processes}")
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
-            if "npu" in accelerator.device.type:
-                gpus = torch.npu.device_count()
+            # if "npu" in accelerator.device.type:
+            #     gpus = torch.npu.device_count()
 
-            if not (parallelize or accelerator.num_processes > 1):
-                # use user-passed device
-                device_list = set(
-                    ["cuda", "cpu"]
-                    + [f"cuda:{i}" for i in range(gpus)]
-                    + ["mps", "mps:0"]
-                    + [f"npu:{i}" for i in range(gpus)]
-                )
-                if device and device in device_list:
-                    self._device = torch.device(device)
-                    eval_logger.info(f"Using device '{device}'")
-                    if device in ("mps", "mps:0") and version.parse(
-                        torch.__version__
-                    ) < version.parse("2.1"):
-                        raise RuntimeError(
-                            f"mps requires torch >= 2.1. You have {torch.__version__}"
-                        )
-                else:
-                    eval_logger.info("Device not specified")
-                    eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
-                    self._device = (
-                        torch.device("cuda")
-                        if torch.cuda.is_available()
-                        else torch.device("cpu")
-                    )
-            else:
-                if device != "cuda":
-                    eval_logger.info(
-                        f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
-                    )
-                # TODO: include in warning that `load_in_8bit` etc. affect this too
-                self._device = torch.device(device)
+            # if not (parallelize or accelerator.num_processes > 1):
+            #     # use user-passed device
+            #     device_list = set(
+            #         ["cuda", "cpu"]
+            #         + [f"cuda:{i}" for i in range(gpus)]
+            #         + ["mps", "mps:0"]
+            #         + [f"npu:{i}" for i in range(gpus)]
+            #     )
+            #     if device and device in device_list:
+            #         self._device = torch.device(device)
+            #         eval_logger.info(f"Using device '{device}'")
+            #         if device in ("mps", "mps:0") and version.parse(
+            #             torch.__version__
+            #         ) < version.parse("2.1"):
+            #             raise RuntimeError(
+            #                 f"mps requires torch >= 2.1. You have {torch.__version__}"
+            #             )
+            #     else:
+            #         eval_logger.info("Device not specified")
+            #         eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
+            #         self._device = (
+            #             torch.device("cuda")
+            #             if torch.cuda.is_available()
+            #             else torch.device("cpu")
+            #         )
+            # else:
+            #     if device != "cuda":
+            #         eval_logger.info(
+            #             f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
+            #         )
+            #     # TODO: include in warning that `load_in_8bit` etc. affect this too
+            #     self._device = torch.device(device)
 
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-            self._get_config(
-                pretrained,
-                revision=revision,
-                trust_remote_code=trust_remote_code,
-            )
+            # self._get_config(
+            #     pretrained,
+            #     revision=revision,
+            #     trust_remote_code=trust_remote_code,
+            # )
 
         # determine which of 'causal' and 'seq2seq' backends to use
         self._get_backend(
@@ -205,39 +226,40 @@ class HFLM(TemplateLM):
         )
 
         # load tokenizer so we know tokenizer vocabulary size before loading model and PEFT
-        self._create_tokenizer(
-            pretrained,
-            tokenizer,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-            use_fast_tokenizer=use_fast_tokenizer,
-        )
+        # self._create_tokenizer(
+        #     pretrained,
+        #     tokenizer,
+        #     revision=revision,
+        #     trust_remote_code=trust_remote_code,
+        #     use_fast_tokenizer=use_fast_tokenizer,
+        # )
 
         # if we passed `pretrained` as a string, initialize our model now
-        if isinstance(pretrained, str):
-            self._create_model(
-                pretrained=pretrained,
-                revision=revision,
-                dtype=dtype,
-                trust_remote_code=trust_remote_code,
-                parallelize=parallelize,
-                gpus=gpus,
-                device_map_option=device_map_option,
-                max_memory_per_gpu=max_memory_per_gpu,
-                max_cpu_memory=max_cpu_memory,
-                offload_folder=offload_folder,
-                peft=peft,
-                delta=delta,
-                autogptq=autogptq,
-                **kwargs,
-            )
+        # if isinstance(pretrained, str):
+        #     self._create_model(
+        #         pretrained=pretrained,
+        #         revision=revision,
+        #         dtype=dtype,
+        #         trust_remote_code=trust_remote_code,
+        #         parallelize=parallelize,
+        #         gpus=gpus,
+        #         device_map_option=device_map_option,
+        #         max_memory_per_gpu=max_memory_per_gpu,
+        #         max_cpu_memory=max_cpu_memory,
+        #         offload_folder=offload_folder,
+        #         peft=peft,
+        #         delta=delta,
+        #         autogptq=autogptq,
+        #         **kwargs,
+        #     )
 
         # access self._model through self.model property outside this method
         if isinstance(self.model, torch.nn.Module):
             self.model.eval()
             self.model.tie_weights()
 
-        if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
+        # if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
+        if gpus >= 1 or str(self.device) == "mps":
             # TODO: can remove this whole snippet except in the mps case, perhaps?
             if not (parallelize or autogptq or hasattr(self, "accelerator")):
                 # place model onto device requested manually,
@@ -279,7 +301,7 @@ class HFLM(TemplateLM):
         else:
             self.batch_size_per_gpu = int(batch_size)
 
-        if isinstance(pretrained, str):
+        if True: #isinstance(pretrained, str): # Force setting multi-GPU for pre-trained models
             # multigpu data-parallel support when launched with accelerate
             if gpus > 1:
                 if parallelize:
@@ -293,6 +315,12 @@ class HFLM(TemplateLM):
                     # if we aren't launching via accelerate, ditch
                     self._rank = 0
                     self._world_size = 1
+                    eval_logger.warning(
+                        "WARNING: The number of total system GPUs does not match the number of spawned processes. "
+                        "If you would like to use data parallelism, please launch the script "
+                        "with 'accelerate launch *script*'. "
+                        f"Current run will proceed with {gpus} devices."
+                    )
                 else:
                     if gpus > accelerator.num_processes:
                         eval_logger.warning(
