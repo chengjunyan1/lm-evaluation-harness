@@ -98,9 +98,10 @@ class TaskConfig(dict):
 
     def __post_init__(self) -> None:
         if self.group is not None:
-            eval_logger.warning(
-                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
-            )
+            # NOTE: Turn off some warnings for faster testing
+            # eval_logger.warning(
+            #     "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            # )
 
             if self.tag is None:
                 self.tag = self.group
@@ -798,13 +799,14 @@ class ConfigurableTask(Task):
                             "aggregation"
                         ]
                 else:
-                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
+                    # INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_metric_aggregation(metric_name)
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
-                        f"using default "
-                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
-                    )
+                    # NOTE: Turn off some warnings for faster testing
+                    # eval_logger.warning(
+                    #     f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
+                    #     f"using default "
+                    #     f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
+                    # )
                     self._aggregation_list[metric_name] = metric_agg
 
                 if "higher_is_better" in metric_config:
@@ -812,11 +814,12 @@ class ConfigurableTask(Task):
                         "higher_is_better"
                     ]
                 else:
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
-                        f"using default "
-                        f"higher_is_better={is_higher_better(metric_name)}"
-                    )
+                    # NOTE: Turn off some warnings for faster testing
+                    # eval_logger.warning(
+                    #     f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
+                    #     f"using default "
+                    #     f"higher_is_better={is_higher_better(metric_name)}"
+                    # )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
         self.download(self.config.dataset_kwargs)
