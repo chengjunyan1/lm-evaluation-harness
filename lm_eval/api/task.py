@@ -828,12 +828,12 @@ class ConfigurableTask(Task):
         ####################################
         time_before_download = time.time()
 
-        self.download(self.config.dataset_kwargs)
+        self.download(self.config.dataset_kwargs) 
         self._training_docs = None
         self._fewshot_docs = None
 
         time_before_filter_list= time.time()
-        eval_logger.info(f"Download->filter_list: Task {self.config.task} loaded in {time_before_filter_list-time_before_download} seconds")
+        eval_logger.info(f"Download Task {self.config.task} in {time_before_filter_list-time_before_download} seconds")
 
         if self.config.filter_list is not None:
             self._filters = []
@@ -851,9 +851,6 @@ class ConfigurableTask(Task):
         else:
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
-        time_before_use_prompt = time.time()
-        eval_logger.info(f"filter_list->use_prompt: Task {self.config.task} loaded in {time_before_use_prompt-time_before_filter_list} seconds")
-
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
             self.prompt = get_prompt(
@@ -861,9 +858,6 @@ class ConfigurableTask(Task):
             )
         else:
             self.prompt = None
-
-        time_before_few_shot = time.time()
-        print(f"use_prompt->fewshot: Task {self.config.task} loaded in {time_before_few_shot-time_before_use_prompt} seconds")
 
         if self.fewshot_docs() is not None:
             self.fewshot_rnd = (
