@@ -228,14 +228,17 @@ def simple_evaluate(
         )
 
     t_model_setup= time.time()
-    eval_logger.info(f"Time taken for initial setup: {t_model_setup - start_date:.2f} seconds")
+    eval_logger.info(f"Time taken for model setup: {t_model_setup - start_date:.2f} seconds")
 
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    task_dict = get_task_dict(tasks, task_manager)
+    t_set_task_manager = time.time()
+    eval_logger.info(f" - Time taken for task manager setup: {t_set_task_manager - t_model_setup:.2f} seconds")
+
+    task_dict = get_task_dict(tasks, task_manager) # most time consuming!
     t_get_task_dict = time.time()
-    eval_logger.info(f" - Time taken for task loading: {t_get_task_dict - t_model_setup:.2f} seconds")
+    eval_logger.info(f" - Time taken for task dict loading: {t_get_task_dict - t_set_task_manager:.2f} seconds")
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
