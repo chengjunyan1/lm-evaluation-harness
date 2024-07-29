@@ -36,7 +36,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.caching.cache import load_from_cache, save_to_cache
+from lm_eval.caching.cache import load_from_cache, save_to_cache, load_from_cache_test_results, save_to_cache_test_results
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 import time
@@ -859,7 +859,10 @@ class ConfigurableTask(Task):
         #     f'cache_key: {cache_key}'
         # ))
 
-        if self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache']:
+        test_results = load_from_cache_test_results(file_name=self.cache_key)
+        CACHED_AND_SKIP= self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache'] and test_results
+
+        if CACHED_AND_SKIP:
             self.dataset = None
             eval_logger.info(f"Loaded cached instances for {self.config.task} on rank {rank}...")
         else:
@@ -893,9 +896,13 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-
-        CACHED_AND_SKIP= self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache']
-        if not CACHED_AND_SKIP and self.fewshot_docs() is not None:
+        if CACHED_AND_SKIP:
+            self.features = test_results['features']
+            self.multiple_input = test_results['multiple_input']
+            self.multiple_target = test_results['multiple_target']
+            return
+        
+        if self.fewshot_docs() is not None:
             self.fewshot_rnd = (
                 random.Random()
             )  # setting with no seed, to be overridden at a later time
@@ -972,6 +979,14 @@ class ConfigurableTask(Task):
                     eval_logger.debug(
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
+
+        test_results = {
+            "features": self.features,
+            "multiple_input": self.multiple_input,
+            "multiple_target": self.multiple_target,
+        }
+        save_to_cache_test_results(file_name=self.cache_key, obj=test_results)
+
 
     def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
         self.dataset = datasets.load_dataset(

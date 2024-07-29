@@ -1,5 +1,6 @@
 import hashlib
 import os
+import json
 
 import dill
 
@@ -33,6 +34,18 @@ def load_from_cache(file_name):
         eval_logger.debug(f"{file_name} is not cached, generating...")
         pass
 
+def load_from_cache_test_results(file_name):
+    try:
+        path = f"{PATH}/{file_name}_test_results.json"
+
+        with open(path, "r") as file:
+            cached_task_dict = json.load(file)
+            return cached_task_dict
+
+    except Exception:
+        eval_logger.debug(f"{file_name} is not cached, generating...")
+        pass
+
 
 def save_to_cache(file_name, obj):
     if not os.path.exists(PATH):
@@ -44,6 +57,15 @@ def save_to_cache(file_name, obj):
     with open(file_path, "wb") as file:
         file.write(dill.dumps(obj))
 
+def save_to_cache_test_results(file_name, obj):
+    if not os.path.exists(PATH):
+        os.mkdir(PATH)
+
+    file_path = f"{PATH}/{file_name}_test_results.json"
+
+    eval_logger.debug(f"Saving test results {file_path} to cache...")
+    with open(file_path, "w") as file:
+        json.dump(obj, file)
 
 # NOTE the "key" param is to allow for flexibility
 def delete_cache(key: str = ""):
