@@ -230,18 +230,20 @@ def simple_evaluate(
     t_model_setup= time.time()
     eval_logger.info(f"Time taken for model setup: {t_model_setup - start_date:.2f} seconds")
 
+    cache_configs = {
+        "cache_requests": cache_requests,
+        "rank": lm.rank,
+        "world_size": lm.world_size,
+        "apply_chat_template": apply_chat_template,
+        "fewshot_as_multiturn": fewshot_as_multiturn,
+        "system_instruction": system_instruction,
+        "tokenizer_name": getattr(lm, "tokenizer_name", ""),
+        'rewrite_requests_cache': rewrite_requests_cache
+    }
     if task_manager is None:
-        cache_configs = {
-            "cache_requests": cache_requests,
-            "rank": lm.rank,
-            "world_size": lm.world_size,
-            "apply_chat_template": apply_chat_template,
-            "fewshot_as_multiturn": fewshot_as_multiturn,
-            "system_instruction": system_instruction,
-            "tokenizer_name": getattr(lm, "tokenizer_name", ""),
-            'rewrite_requests_cache': rewrite_requests_cache
-        }
         task_manager = TaskManager(verbosity,cache_configs=cache_configs)
+    else:
+        task_manager.cache_configs = cache_configs
 
     task_dict = get_task_dict(tasks, task_manager,cache_requests) ### most time consuming!
     t_get_task_dict = time.time()
