@@ -863,7 +863,7 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         time_before_few_shot = time.time()
-        print(f"use_prompt->fewshot: Task {self.config.task} loaded in {time_before_filter_list-time_before_download} seconds")
+        print(f"use_prompt->fewshot: Task {self.config.task} loaded in {time_before_few_shot-time_before_use_prompt} seconds")
 
         if self.fewshot_docs() is not None:
             self.fewshot_rnd = (
