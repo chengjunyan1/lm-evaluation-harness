@@ -853,11 +853,11 @@ class ConfigurableTask(Task):
         if self.cache_configs['cache_requests'] and not self.cache_configs['rewrite_requests_cache']:
             self.cached_instances = load_from_cache(file_name=cache_key)
 
-        eval_logger.info((
-            f'Loading task {self.config.task} on rank {rank} with cache status: '
-            f'{self.cache_configs["cache_requests"]}, {self.cached_instances is not None}, {not self.cache_configs["rewrite_requests_cache"]}\n'
-            f'cache_key: {cache_key}'
-        ))
+        # eval_logger.info((
+        #     f'Loading task {self.config.task} on rank {rank} with cache status: '
+        #     f'{self.cache_configs["cache_requests"]}, {self.cached_instances is not None}, {not self.cache_configs["rewrite_requests_cache"]}\n'
+        #     f'cache_key: {cache_key}'
+        # ))
 
         if self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache']:
             self.dataset = None
@@ -893,7 +893,9 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.fewshot_docs() is not None:
+
+        CACHED_AND_SKIP= self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache']
+        if not CACHED_AND_SKIP and self.fewshot_docs() is not None:
             self.fewshot_rnd = (
                 random.Random()
             )  # setting with no seed, to be overridden at a later time
