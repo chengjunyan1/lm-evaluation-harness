@@ -855,6 +855,7 @@ class ConfigurableTask(Task):
 
         if self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache']:
             self.dataset = None
+            eval_logger.info(f"Loaded cached instances for {self.config.task} on rank {rank}...")
         else:
             self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
         self._training_docs = None
