@@ -410,6 +410,8 @@ class Task(abc.ABC):
         # cache_key += f"-tokenizer{tokenizer_name}"
 
         # cached_instances = load_from_cache(file_name=cache_key)
+
+        cache_key = self.cache_key
         cached_instances = self.cached_instances
 
         if cache_requests and cached_instances and not rewrite_requests_cache:
@@ -846,11 +848,12 @@ class ConfigurableTask(Task):
         )
         cache_key += f"-tokenizer{tokenizer_name}"
 
+        self.cache_key=cache_key
         self.cached_instances=None
-        if self.cache_configs['cache_requests']:
+        if self.cache_configs['cache_requests'] and not self.cache_configs['rewrite_requests_cache']:
             self.cached_instances = load_from_cache(file_name=cache_key)
 
-        if self.cache_configs['cache_requests'] and self.cached_instances:
+        if self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache']:
             self.dataset = None
         else:
             self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
@@ -965,7 +968,6 @@ class ConfigurableTask(Task):
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
-            cache_requests=self.cache_requests,
             **dataset_kwargs if dataset_kwargs is not None else {},
         )
 

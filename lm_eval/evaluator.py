@@ -239,6 +239,7 @@ def simple_evaluate(
             "fewshot_as_multiturn": fewshot_as_multiturn,
             "system_instruction": system_instruction,
             "tokenizer_name": getattr(lm, "tokenizer_name", ""),
+            'rewrite_requests_cache': rewrite_requests_cache
         }
         task_manager = TaskManager(verbosity,cache_configs=cache_configs)
 
