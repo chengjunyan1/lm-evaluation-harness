@@ -887,7 +887,7 @@ class ConfigurableTask(Task):
         self.task_docs = self.eval_docs
 
         time_before_one_doc_test = time.time()
-        eval_logger.info(f"Fewshot->Onedoc: Task {self.config.task} loaded in {time_before_one_doc_test-time_before_download} seconds")
+        eval_logger.info(f"Fewshot->Onedoc: Task {self.config.task} loaded in {time_before_one_doc_test-time_before_few_shot} seconds")
 
         ##############################################
 
