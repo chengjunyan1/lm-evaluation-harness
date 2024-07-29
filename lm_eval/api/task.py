@@ -39,6 +39,7 @@ from lm_eval.api.registry import (
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+import time
 
 
 ALL_OUTPUT_TYPES = [
@@ -709,6 +710,8 @@ class ConfigurableTask(Task):
         download_mode=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
+    
+        timestart=time.time()
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -927,6 +930,8 @@ class ConfigurableTask(Task):
                     eval_logger.debug(
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
+        timeend=time.time()
+        eval_logger.info(f"Task {self.config.task} loaded in {timeend-timestart} seconds")
 
     def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
         self.dataset = datasets.load_dataset(
