@@ -258,7 +258,7 @@ def parse_eval_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
     return parser.parse_args()
 
 
-def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
+def cli_evaluate(args: Union[argparse.Namespace, None] = None, gab=None, gab_config=None) -> None:
     if not args:
         # we allow for args to be passed externally, else we parse them ourselves
         parser = setup_parser()
@@ -380,6 +380,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     )
 
     results = evaluator.simple_evaluate(
+        gab=gab,
+        gab_config=gab_config,
         model=args.model,
         model_args=args.model_args,
         tasks=task_names,

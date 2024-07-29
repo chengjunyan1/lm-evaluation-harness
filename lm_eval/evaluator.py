@@ -47,6 +47,8 @@ if TYPE_CHECKING:
 @positional_deprecated
 def simple_evaluate(
     model,
+    gab,
+    gab_config,
     model_args: Optional[Union[str, dict]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
@@ -188,6 +190,8 @@ def simple_evaluate(
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
                     "device": device,
+                    "gab": gab,
+                    "gab_config": gab_config
                 },
             )
 
@@ -201,6 +205,8 @@ def simple_evaluate(
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
                     "device": device,
+                    "gab": gab,
+                    "gab_config": gab_config
                 },
             )
     else:
@@ -221,8 +227,8 @@ def simple_evaluate(
             + ".db",
         )
 
-    t_init_setup= time.time()
-    eval_logger.info(f"Time taken for model setup: {t_init_setup - start_date:.2f} seconds")
+    t_model_setup= time.time()
+    eval_logger.info(f"Time taken for initial setup: {t_model_setup - start_date:.2f} seconds")
 
     if task_manager is None:
         task_manager = TaskManager(verbosity)
@@ -297,7 +303,7 @@ def simple_evaluate(
         )
 
     t_task_setup = time.time()
-    eval_logger.info(f"Time taken for task setup: {t_task_setup - t_init_setup:.2f} seconds")
+    eval_logger.info(f"Time taken for task setup: {t_task_setup - t_model_setup:.2f} seconds")
 
     results = evaluate(
         lm=lm,
