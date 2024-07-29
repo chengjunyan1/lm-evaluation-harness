@@ -221,6 +221,9 @@ def simple_evaluate(
             + ".db",
         )
 
+    t_init_setup= time.time()
+    eval_logger.info(f"Time taken for initial setup: {t_init_setup - start_date:.2f} seconds")
+
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
@@ -292,6 +295,9 @@ def simple_evaluate(
             chat_template=lm.chat_template if apply_chat_template else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
+
+    t_task_setup = time.time()
+    eval_logger.info(f"Time taken for task setup: {t_task_setup - t_init_setup:.2f} seconds")
 
     results = evaluate(
         lm=lm,
