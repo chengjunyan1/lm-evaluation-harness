@@ -222,7 +222,7 @@ def simple_evaluate(
         )
 
     t_init_setup= time.time()
-    eval_logger.info(f"Time taken for initial setup: {t_init_setup - start_date:.2f} seconds")
+    eval_logger.info(f"Time taken for model setup: {t_init_setup - start_date:.2f} seconds")
 
     if task_manager is None:
         task_manager = TaskManager(verbosity)
