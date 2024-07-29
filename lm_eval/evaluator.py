@@ -311,7 +311,7 @@ def simple_evaluate(
         )
 
     t_task_setup = time.time()
-    eval_logger.info(f"Time taken for task setup: {t_task_setup - t_model_setup:.2f} seconds")
+    eval_logger.info(f" - Time taken for task log_experiment_args: {t_task_setup - t_task_integrity:.2f} seconds")
 
     results = evaluate(
         lm=lm,
