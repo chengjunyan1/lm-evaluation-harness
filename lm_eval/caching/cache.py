@@ -56,7 +56,7 @@ def load_from_cache_process_results(file_name):
         
     except Exception:
         eval_logger.debug(f"{file_name} is not cached, generating...")
-        pass
+        return {}
 
 def save_to_cache(file_name, obj):
     if not os.path.exists(PATH):

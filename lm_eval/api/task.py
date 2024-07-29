@@ -866,14 +866,14 @@ class ConfigurableTask(Task):
 
         test_results = load_from_cache_test_results(file_name=self.cache_key)
         self.result_cache = load_from_cache_process_results(file_name=self.cache_key)
-        CACHED_AND_SKIP= self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache'] and test_results and self.result_cache
+        self.has_result_cache = self.result_cache != {}
+        CACHED_AND_SKIP= self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache'] and test_results and self.has_result_cache
 
         if CACHED_AND_SKIP:
             self.dataset = None
             eval_logger.info(f"Loaded cached instances for {self.config.task} on rank {rank}...")
         else:
             self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
-            self.result_cache = {}
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -1010,9 +1010,6 @@ class ConfigurableTask(Task):
             world_size=int(world_size),
         )
         return doc_iterator
-    
-    def has_result_cache(self):
-        return self.result_cache != {}
 
     def save_result_cache(self):
         save_to_cache_process_results(file_name=self.cache_key, obj=self.result_cache)
@@ -1429,7 +1426,8 @@ class ConfigurableTask(Task):
             raise NotImplementedError
             return self.config.process_results(doc, results)
 
-        if doc_id not in self.result_cache:
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
             self.result_cache[doc_id] = {}
 
         result_dict = {}
@@ -1443,7 +1441,7 @@ class ConfigurableTask(Task):
             }
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             (loglikelihood,) = results
-            if doc_id not in self.result_cache:
+            if UNCACHED:
                 _words = self.count_words(self.doc_to_target(doc))
                 _bytes = self.count_bytes(self.doc_to_target(doc))
                 self.result_cache[doc_id]['_words'] = _words
@@ -1472,7 +1470,7 @@ class ConfigurableTask(Task):
             lls, is_greedy = zip(*results)
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
-            if doc_id not in self.result_cache:
+            if UNCACHED:
                 choices = self.doc_to_choice(doc)
                 self.result_cache[doc_id]['choices'] = choices
             else:
@@ -1495,7 +1493,7 @@ class ConfigurableTask(Task):
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)
 
-            if doc_id not in self.result_cache:
+            if UNCACHED:
                 if self.multiple_input:
                     gold = self.doc_to_text(doc)
                 else:
@@ -1560,7 +1558,7 @@ class ConfigurableTask(Task):
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
         elif self.OUTPUT_TYPE == "generate_until":
-            if doc_id not in self.result_cache:
+            if UNCACHED:
                 gold = self.doc_to_target(doc)
                 self.result_cache[doc_id]["gold"] = gold
             else:
@@ -1570,7 +1568,7 @@ class ConfigurableTask(Task):
             if self.config.doc_to_choice is not None:
                 # If you set doc_to_choice,
                 # it assumes that doc_to_target returns a number.
-                if doc_id not in self.result_cache:
+                if UNCACHED:
                     choices = self.doc_to_choice(doc)
                     gold = choices[gold]
                     self.result_cache[doc_id]["gold"] = gold
