@@ -513,7 +513,7 @@ class Task(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def process_results(self, doc, results):
+    def process_results(self, doc_id, doc, results):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
@@ -1684,7 +1684,7 @@ class MultipleChoiceTask(Task):
             for i, choice in enumerate(doc["choices"])
         ]
 
-    def process_results(self, doc: dict, results: Iterable[Tuple[float, bool]]) -> dict:
+    def process_results(self, doc_id, doc: dict, results: Iterable[Tuple[float, bool]]) -> dict:
         results = [
             res[0] for res in results
         ]  # only retain loglikelihoods, discard is_greedy TODO: do we need is_greedy anywhere?
@@ -1761,7 +1761,7 @@ class PerplexityTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc: dict, results: Tuple[float]) -> dict:
+    def process_results(self, doc_id, doc: dict, results: Tuple[float]) -> dict:
         (loglikelihood,) = results
         words = self.count_words(self.doc_to_target(doc))
         bytes_ = self.count_bytes(self.doc_to_target(doc))
