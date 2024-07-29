@@ -873,6 +873,8 @@ class ConfigurableTask(Task):
         test_results = load_from_cache_test_results(file_name=self.cache_key)
         self.result_cache = load_from_cache_process_results(file_name=self.cache_key)
         self.has_result_cache = self.result_cache != {}
+        if self.cache_configs['rewrite_requests_cache']:
+            self.has_result_cache = False
         CACHED_AND_SKIP= self.cache_configs['cache_requests'] and self.cached_instances and not self.cache_configs['rewrite_requests_cache'] and test_results and self.has_result_cache
 
         if CACHED_AND_SKIP:
