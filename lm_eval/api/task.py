@@ -236,6 +236,7 @@ class Task(abc.ABC):
                 Fresh download and fresh dataset.
         """
         self.download(data_dir, cache_dir, download_mode)
+        self.cached_instances = None
         self._training_docs: Optional[list] = None
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
@@ -398,17 +399,18 @@ class Task(abc.ABC):
         # used with caching
         og_limit = limit
 
-        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
-        cache_key += "-chat_template" if apply_chat_template else ""
-        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
-        cache_key += (
-            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
-            if system_instruction is not None
-            else ""
-        )
-        cache_key += f"-tokenizer{tokenizer_name}"
+        # cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
+        # cache_key += "-chat_template" if apply_chat_template else ""
+        # cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
+        # cache_key += (
+        #     f"-system_prompt_hash{utils.hash_string(system_instruction)}"
+        #     if system_instruction is not None
+        #     else ""
+        # )
+        # cache_key += f"-tokenizer{tokenizer_name}"
 
-        cached_instances = load_from_cache(file_name=cache_key)
+        # cached_instances = load_from_cache(file_name=cache_key)
+        cached_instances = self.cached_instances
 
         if cache_requests and cached_instances and not rewrite_requests_cache:
             cached_instances = cached_instances[:limit]
@@ -709,10 +711,12 @@ class ConfigurableTask(Task):
         cache_dir=None,
         download_mode=None,
         config: Optional[dict] = None,
+        cache_configs: bool = False,
     ) -> None:  # TODO no super() call here
     
         # Get pre-configured attributes
         self._config = self.CONFIG
+        self.cache_configs=cache_configs
 
         # Use new configurations if there was no preconfiguration
         if self.config is None:
@@ -824,15 +828,36 @@ class ConfigurableTask(Task):
                     # )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
+        ### Modify: SKIP download if has cache, can be dangerous if cache is incomplete
+        rank = self.cache_configs['rank']
+        world_size = self.cache_configs['world_size']
+        apply_chat_template = self.cache_configs['apply_chat_template']
+        fewshot_as_multiturn = self.cache_configs['fewshot_as_multiturn']
+        system_instruction = self.cache_configs['system_instruction']
+        tokenizer_name = self.cache_configs['tokenizer_name']
 
-        time_before_download = time.time()
+        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
+        cache_key += "-chat_template" if apply_chat_template else ""
+        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
+        cache_key += (
+            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
+            if system_instruction is not None
+            else ""
+        )
+        cache_key += f"-tokenizer{tokenizer_name}"
 
-        self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
+        self.cached_instances=None
+        if self.cache_configs['cache_requests']:
+            self.cached_instances = load_from_cache(file_name=cache_key)
+
+        if self.cache_configs['cache_requests'] and self.cached_instances:
+            self.dataset = None
+        else:
+            self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
         self._training_docs = None
         self._fewshot_docs = None
 
-        time_after_download= time.time()
-        eval_logger.info(f"Download Task {self.config.task} in {time_after_download-time_before_download} seconds")
+        ##########################################
 
         if self.config.filter_list is not None:
             self._filters = []
@@ -940,6 +965,7 @@ class ConfigurableTask(Task):
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
+            cache_requests=self.cache_requests,
             **dataset_kwargs if dataset_kwargs is not None else {},
         )
 

@@ -25,11 +25,13 @@ class TaskManager:
         verbosity="INFO",
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
+        cache_configs: dict = None,
     ) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
+        self.cache_configs = cache_configs
 
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults
@@ -266,14 +268,14 @@ class TaskManager:
                 }
             if self._config_is_python_task(config):
                 if self._class_has_config_in_constructor(config["class"]):
-                    task_object = config["class"](config=config)
+                    task_object = config["class"](config=config,cache_configs=self.cache_configs)
                 else:
-                    task_object = config["class"]()
+                    task_object = config["class"](cache_configs=self.cache_configs)
                 if isinstance(task_object, ConfigurableTask):
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = config["task"]
             else:
-                task_object = ConfigurableTask(config=config)
+                task_object = ConfigurableTask(config=config,cache_configs=self.cache_configs)
 
             return {task: task_object}
 
@@ -574,6 +576,7 @@ def _check_duplicates(task_dict: dict) -> List[str]:
 def get_task_dict(
     task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
+    cache_requests: bool = False,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
@@ -611,7 +614,7 @@ def get_task_dict(
     ]
     if len(string_task_name_list) > 0:
         if task_manager is None:
-            task_manager = TaskManager()
+            task_manager = TaskManager(cache_requests=cache_requests)
 
         task_name_from_string_dict = task_manager.load_task_or_group(
             string_task_name_list
