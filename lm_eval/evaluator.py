@@ -652,10 +652,10 @@ def evaluate(
             "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": {
                 task_output.task_name: {
-                    "original": len(task_output.task.eval_docs),
+                    "original": task_output.task.len_eval_docs,
                     "effective": min(
-                        limit if limit else len(task_output.task.eval_docs),
-                        len(task_output.task.eval_docs),
+                        limit if limit else len(task_output.task.len_eval_docs),
+                        len(task_output.task.len_eval_docs),
                     ),
                 }
                 for task_output in eval_tasks

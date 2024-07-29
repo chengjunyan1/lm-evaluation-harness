@@ -253,6 +253,8 @@ class Task(abc.ABC):
             None  # purposely induce errors in case of improper usage
         )
 
+        self.len_eval_docs = len(self.eval_docs)
+
     def download(
         self,
         data_dir: Optional[str] = None,
@@ -915,6 +917,7 @@ class ConfigurableTask(Task):
             self.features = test_results['features']
             self.multiple_input = test_results['multiple_input']
             self.multiple_target = test_results['multiple_target']
+            self.len_eval_docs = test_results['len_eval_docs']
             return
         
         if self.fewshot_docs() is not None:
@@ -943,6 +946,8 @@ class ConfigurableTask(Task):
                 )
 
         self.task_docs = self.eval_docs
+
+        self.len_eval_docs = len(self.task_docs)
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
@@ -999,8 +1004,11 @@ class ConfigurableTask(Task):
             "features": self.features,
             "multiple_input": self.multiple_input,
             "multiple_target": self.multiple_target,
+            "len_eval_docs": len(self.task_docs),
         }
         save_to_cache_test_results(file_name=self.cache_key, obj=test_results)
+
+            
 
     def doc_iterator(
         self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
