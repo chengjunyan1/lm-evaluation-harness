@@ -504,6 +504,7 @@ def evaluate(
     for task_output in eval_tasks:
         task = task_output.task
         task.apply_filters()
+        has_result_cache = task.has_result_cache()
 
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
@@ -521,9 +522,12 @@ def evaluate(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
             for doc_id, doc in doc_iterator:
+                if has_result_cache:
+                    doc_id = doc
+                    doc = None
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
+                    doc_id, doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)
@@ -551,6 +555,9 @@ def evaluate(
                     task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)
+        if not has_result_cache:
+            task.save_result_cache()
+        
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0

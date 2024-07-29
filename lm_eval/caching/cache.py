@@ -46,6 +46,17 @@ def load_from_cache_test_results(file_name):
         eval_logger.debug(f"{file_name} is not cached, generating...")
         pass
 
+def load_from_cache_process_results(file_name):
+    try:
+        path = f"{PATH}/{file_name}_process_results.json"
+
+        with open(path, "r") as file:
+            cached_task_dict = json.load(file)
+            return cached_task_dict
+        
+    except Exception:
+        eval_logger.debug(f"{file_name} is not cached, generating...")
+        pass
 
 def save_to_cache(file_name, obj):
     if not os.path.exists(PATH):
@@ -64,6 +75,16 @@ def save_to_cache_test_results(file_name, obj):
     file_path = f"{PATH}/{file_name}_test_results.json"
 
     eval_logger.debug(f"Saving test results {file_path} to cache...")
+    with open(file_path, "w") as file:
+        json.dump(obj, file)
+
+def save_to_cache_process_results(file_name, obj):
+    if not os.path.exists(PATH):
+        os.mkdir(PATH)
+
+    file_path = f"{PATH}/{file_name}_process_results.json"
+
+    eval_logger.debug(f"Saving process results {file_path} to cache...")
     with open(file_path, "w") as file:
         json.dump(obj, file)
 
