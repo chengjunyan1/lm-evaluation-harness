@@ -233,12 +233,9 @@ def simple_evaluate(
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    t_set_task_manager = time.time()
-    eval_logger.info(f" - Time taken for task manager setup: {t_set_task_manager - t_model_setup:.2f} seconds")
-
     task_dict = get_task_dict(tasks, task_manager) # most time consuming!
     t_get_task_dict = time.time()
-    eval_logger.info(f" - Time taken for task dict loading: {t_get_task_dict - t_set_task_manager:.2f} seconds")
+    eval_logger.info(f" - Time taken for task loading: {t_get_task_dict - t_model_setup:.2f} seconds")
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
@@ -295,15 +292,9 @@ def simple_evaluate(
 
     task_dict = _adjust_config(task_dict)
 
-    t_adjust_task_config = time.time()
-    eval_logger.info(f" - Time taken for task config adjustment: {t_adjust_task_config - t_get_task_dict:.2f} seconds")
-
     if check_integrity:
         run_task_tests(task_list=tasks)
     
-    t_task_integrity = time.time()
-    eval_logger.info(f" - Time taken for task integrity check: {t_task_integrity - t_adjust_task_config:.2f} seconds")
-
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
             model_source=model,
@@ -312,9 +303,6 @@ def simple_evaluate(
             chat_template=lm.chat_template if apply_chat_template else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
-
-    t_task_setup = time.time()
-    eval_logger.info(f" - Time taken for task log_experiment_args: {t_task_setup - t_task_integrity:.2f} seconds")
 
     results = evaluate(
         lm=lm,

@@ -703,7 +703,7 @@ class ConfigurableTask(Task):
     OUTPUT_TYPE = None
     CONFIG = None
 
-    def __init__(
+    def __init__( # TODO: Can we dump it?
         self,
         data_dir=None,
         cache_dir=None,
@@ -825,6 +825,9 @@ class ConfigurableTask(Task):
                     # )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
+        time_before_download = time.time()
+        eval_logger.info(f"Task {self.config.task} loaded in {time_before_download-timestart} seconds")
+
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
@@ -880,6 +883,9 @@ class ConfigurableTask(Task):
 
         self.task_docs = self.eval_docs
 
+        time_before_one_doc_test = time.time()
+        eval_logger.info(f"Task {self.config.task} loaded in {time_before_one_doc_test-time_before_download} seconds")
+
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
         self.multiple_input = 0
@@ -931,7 +937,7 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
         timeend=time.time()
-        eval_logger.info(f"Task {self.config.task} loaded in {timeend-timestart} seconds")
+        eval_logger.info(f"Task {self.config.task} loaded in {timeend-time_before_one_doc_test} seconds")
 
     def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
         self.dataset = datasets.load_dataset(
