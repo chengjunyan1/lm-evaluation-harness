@@ -825,15 +825,14 @@ class ConfigurableTask(Task):
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
 
-        ####################################
         time_before_download = time.time()
 
-        self.download(self.config.dataset_kwargs) 
+        self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
         self._training_docs = None
         self._fewshot_docs = None
 
-        time_before_filter_list= time.time()
-        eval_logger.info(f"Download Task {self.config.task} in {time_before_filter_list-time_before_download} seconds")
+        time_after_download= time.time()
+        eval_logger.info(f"Download Task {self.config.task} in {time_after_download-time_before_download} seconds")
 
         if self.config.filter_list is not None:
             self._filters = []
