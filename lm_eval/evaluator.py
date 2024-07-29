@@ -555,7 +555,7 @@ def evaluate(
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)
                     
-        if not task.has_result_cache:
+        if (not task.has_result_cache and cache_requests) or rewrite_requests_cache:
             task.save_result_cache()
         
 
