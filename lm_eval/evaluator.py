@@ -526,9 +526,10 @@ def evaluate(
                 #     doc_id = doc
                 #     doc = None
                 metrics = task.process_results(
-                    doc_id, doc, [req.filtered_resps[filter_key] for req in requests]
+                    str(doc_id), doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
+                    raise NotImplementedError("Logging samples is not yet implemented")
                     target = task.doc_to_target(doc)
                     example = {
                         "doc_id": doc_id,
