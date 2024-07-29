@@ -244,6 +244,8 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
+        self.has_result_cache = False
+
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -995,6 +997,9 @@ class ConfigurableTask(Task):
         save_to_cache_test_results(file_name=self.cache_key, obj=test_results)
 
 
+    def save_result_cache(self):
+        pass
+
     def doc_iterator(
         self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
     ) -> Iterator[Tuple[int, Any]]:
@@ -1002,7 +1007,7 @@ class ConfigurableTask(Task):
         if not self.has_result_cache:
             eval_docs = self.eval_docs
         else: 
-            eval_docs = self.result_cache.keys()
+            eval_docs = list(self.result_cache.keys())
         doc_iterator = utils.create_iterator(
             enumerate(eval_docs),
             rank=int(rank),
