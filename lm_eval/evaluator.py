@@ -237,6 +237,8 @@ def simple_evaluate(
     eval_logger.info(f" - Time taken for task manager setup: {t_set_task_manager - t_model_setup:.2f} seconds")
 
     task_dict = get_task_dict(tasks, task_manager) # most time consuming!
+    print(task_dict)
+    print(type(task_dict))
     t_get_task_dict = time.time()
     eval_logger.info(f" - Time taken for task dict loading: {t_get_task_dict - t_set_task_manager:.2f} seconds")
 
