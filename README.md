@@ -3,8 +3,7 @@ Edits:
 - Turned off some warnings in task.py
 - Added BabyLM benchmarks
 - Turned off F1 in glue, too slow
-
-
+- Pass gab class for loading faster
 
 
 
