@@ -294,7 +294,7 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-                eval_logger.info(
+                eval_logger.debug(
                     f"Setting fewshot random generator seed to {fewshot_random_seed}"
                 )
 
@@ -520,12 +520,12 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
-            for doc_id, doc in doc_iterator:
+            for doc_id, doc in doc_iterator: 
                 requests = instances_by_doc_id[doc_id]
                 # if task.has_result_cache:
                 #     doc_id = doc
                 #     doc = None
-                metrics = task.process_results(
+                metrics = task.process_results( # NOTE: Whether the doc id and re corespond to each other 
                     str(doc_id), doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
