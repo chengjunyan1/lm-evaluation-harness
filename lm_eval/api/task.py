@@ -291,6 +291,10 @@ class Task(abc.ABC):
             download_mode=download_mode,
         )
 
+
+    def save_result_cache(self):
+        pass
+
     @property
     def config(self) -> TaskConfig:
         """Returns the TaskConfig associated with this class."""
@@ -995,10 +999,6 @@ class ConfigurableTask(Task):
             "multiple_target": self.multiple_target,
         }
         save_to_cache_test_results(file_name=self.cache_key, obj=test_results)
-
-
-    def save_result_cache(self):
-        pass
 
     def doc_iterator(
         self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
