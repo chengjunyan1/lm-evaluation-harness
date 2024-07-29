@@ -832,6 +832,9 @@ class ConfigurableTask(Task):
         self._training_docs = None
         self._fewshot_docs = None
 
+        time_before_filter_list= time.time()
+        eval_logger.info(f"Download->filter_list: Task {self.config.task} loaded in {time_before_filter_list-time_before_download} seconds")
+
         if self.config.filter_list is not None:
             self._filters = []
             for filter_config in self.config.filter_list:
@@ -848,6 +851,9 @@ class ConfigurableTask(Task):
         else:
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
+        time_before_use_prompt = time.time()
+        eval_logger.info(f"filter_list->use_prompt: Task {self.config.task} loaded in {time_before_use_prompt-time_before_filter_list} seconds")
+
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
             self.prompt = get_prompt(
@@ -857,7 +863,7 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         time_before_few_shot = time.time()
-        print(f"Download->fewshot: Task {self.config.task} loaded in {time_before_few_shot-time_before_download} seconds")
+        print(f"use_prompt->fewshot: Task {self.config.task} loaded in {time_before_filter_list-time_before_download} seconds")
 
         if self.fewshot_docs() is not None:
             self.fewshot_rnd = (
@@ -885,11 +891,6 @@ class ConfigurableTask(Task):
                 )
 
         self.task_docs = self.eval_docs
-
-        time_before_one_doc_test = time.time()
-        eval_logger.info(f"Fewshot->Onedoc: Task {self.config.task} loaded in {time_before_one_doc_test-time_before_few_shot} seconds")
-
-        ##############################################
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
