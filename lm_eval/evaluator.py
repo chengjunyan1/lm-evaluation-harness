@@ -521,10 +521,10 @@ def evaluate(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
             for doc_id, doc in doc_iterator: 
+                if task.has_result_cache:
+                    doc_id = int(doc)
+                    doc = None
                 requests = instances_by_doc_id[doc_id]
-                # if task.has_result_cache:
-                #     doc_id = doc
-                #     doc = None
                 metrics = task.process_results( # NOTE: Whether the doc id and re corespond to each other 
                     str(doc_id), doc, [req.filtered_resps[filter_key] for req in requests]
                 )
