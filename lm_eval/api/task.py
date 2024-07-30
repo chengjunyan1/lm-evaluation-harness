@@ -849,6 +849,7 @@ class ConfigurableTask(Task):
         system_instruction = self.cache_configs['system_instruction']
         tokenizer_name = self.cache_configs['tokenizer_name']
 
+        # TODO: Maybe need to consider random seed in the cache key as well??? 
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
         cache_key += "-chat_template" if apply_chat_template else ""
         cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
