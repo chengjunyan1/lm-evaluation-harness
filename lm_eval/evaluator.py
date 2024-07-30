@@ -654,8 +654,8 @@ def evaluate(
                 task_output.task_name: {
                     "original": task_output.task.len_eval_docs,
                     "effective": min(
-                        limit if limit else len(task_output.task.len_eval_docs),
-                        len(task_output.task.len_eval_docs),
+                        limit if limit else task_output.task.len_eval_docs,
+                        task_output.task.len_eval_docs,
                     ),
                 }
                 for task_output in eval_tasks
