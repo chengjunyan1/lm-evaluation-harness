@@ -1014,12 +1014,10 @@ class ConfigurableTask(Task):
         self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
     ) -> Iterator[Tuple[int, Any]]:
         limit = int(limit) if limit else None
-        if not self.has_result_cache:
-            eval_docs = self.eval_docs
-        else: 
-            eval_docs = list(self.result_cache.keys())
+        if self.has_result_cache:
+            return enumerate(self.result_cache.keys())
         doc_iterator = utils.create_iterator(
-            enumerate(eval_docs),
+            enumerate(self.eval_docs),
             rank=int(rank),
             limit=limit,
             world_size=int(world_size),
