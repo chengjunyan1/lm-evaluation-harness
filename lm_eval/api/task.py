@@ -865,8 +865,6 @@ class ConfigurableTask(Task):
         if self.cache_configs['cache_requests'] and not self.cache_configs['rewrite_requests_cache']:
             self.cached_instances = load_from_cache(file_name=cache_key)
 
-        
-
         # eval_logger.info((
         #     f'Loading task {self.config.task} on rank {rank} with cache status: '
         #     f'{self.cache_configs["cache_requests"]}, {self.cached_instances is not None}, {not self.cache_configs["rewrite_requests_cache"]}\n'
