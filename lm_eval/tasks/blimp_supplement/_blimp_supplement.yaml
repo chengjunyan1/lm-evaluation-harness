@@ -1,0 +1,13 @@
+group: blimp_supplement
+task:
+  - "hypernym"
+  - "qa_congruence_easy"
+  - "qa_congruence_tricky"
+  - "subject_aux_inversion"
+  - "turn_taking"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: False
+metadata:
+  version: 2.0
