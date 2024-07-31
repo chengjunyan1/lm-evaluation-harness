@@ -52,8 +52,8 @@ class SQuAD2(ConfigurableTask):
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
 
-    def __init__(self, config=None):
-        super().__init__(config={"metadata": {"version": self.VERSION}})
+    def __init__(self, config=None, cache_configs=None):
+        super().__init__(config={"metadata": {"version": self.VERSION}},cache_configs=cache_configs)
 
     # HF changed squad on us so we have to make sure we aren't running the old one
     assert version.parse(datasets.__version__) >= version.parse(
@@ -132,7 +132,7 @@ class SQuAD2(ConfigurableTask):
             ),
         ]
 
-    def process_results(self, doc, results):
+    def process_results(self, doc_id, doc, results):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
@@ -145,17 +145,28 @@ class SQuAD2(ConfigurableTask):
 
         continuation, (logprob_unanswerable, _) = results
 
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
+            self.result_cache[doc_id] = {}
+            did = doc["id"]
+            answers = doc["answers"]
+            self.result_cache[doc_id]["id"] = did
+            self.result_cache[doc_id]["answers"] = answers
+        else:
+            did = self.result_cache[doc_id]["id"]
+            answers = self.result_cache[doc_id]["answers"]
+
         no_answer_probability = exp(logprob_unanswerable)
 
         predictions = {
-            "id": doc["id"],
+            "id": did,
             "prediction_text": continuation,
             "no_answer_probability": no_answer_probability,
         }
 
         references = {
-            "id": doc["id"],
-            "answers": doc["answers"],
+            "id": did,
+            "answers": answers,
         }
 
         return {
