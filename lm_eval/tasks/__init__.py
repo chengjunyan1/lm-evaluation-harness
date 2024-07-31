@@ -511,7 +511,7 @@ class TaskManager:
                                             "yaml_path": -1,
                                         }
                                     elif tasks_and_groups[tag]["type"] != "tag":
-                                        self.logger.info(
+                                        self.logger.debug(
                                             f"The tag {tag} is already registered as a group, this tag will not be registered. "
                                             "This may affect tasks you want to call."
                                         )
