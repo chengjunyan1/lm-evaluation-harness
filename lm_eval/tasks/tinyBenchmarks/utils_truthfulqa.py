@@ -9,11 +9,19 @@ from rouge_score import rouge_scorer, scoring
 ROUGE_SCORER = None
 
 
-def process_results_mc2(doc, results):
+def process_results_mc2(cls, doc_id, doc, results):
     lls, is_greedy = zip(*results)
 
+    UNCACHED= doc_id not in cls.result_cache
+    if UNCACHED:
+        cls.result_cache[doc_id] = {}
+        labels= doc["mc2_targets"]["labels"]
+        cls.result_cache[doc_id]["labels"]= labels
+    else:
+        labels= cls.result_cache[doc_id]["labels"]
+
     # Split on the first `0` as everything before it is true (`1`).
-    split_idx = list(doc["mc2_targets"]["labels"]).index(0)
+    split_idx = list(labels).index(0)
     # Compute the normalized probability mass for the correct answer.
     ll_true, ll_false = lls[:split_idx], lls[split_idx:]
     p_true, p_false = np.exp(np.array(ll_true)), np.exp(np.array(ll_false))
@@ -50,8 +58,21 @@ def preprocess_function(examples):
     }
 
 
-def process_results_gen(doc, results):
+def process_results_gen(cls, doc_id, doc, results):
     completion = results[0]
+
+    
+    UNCACHED= doc_id not in cls.result_cache
+    if UNCACHED:
+        cls.result_cache[doc_id] = {}
+        correct_answers= doc["correct_answers"]
+        incorrect_answers= doc["incorrect_answers"]
+        cls.result_cache[doc_id]["correct_answers"]= correct_answers
+        cls.result_cache[doc_id]["incorrect_answers"]= incorrect_answers
+    else:
+        correct_answers= cls.result_cache[doc_id]["correct_answers"]
+        incorrect_answers= cls.result_cache[doc_id]["incorrect_answers"]
+
     true_refs, false_refs = doc["correct_answers"], doc["incorrect_answers"]
     all_refs = true_refs + false_refs
 
