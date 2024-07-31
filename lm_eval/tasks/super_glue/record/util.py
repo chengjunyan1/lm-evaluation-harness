@@ -38,12 +38,23 @@ def process_docs(dataset: datasets.Dataset):
     return dataset.map(_process_doc)
 
 
-def process_results(doc, results):
+def process_results(cls, doc_id, doc, results):
     # ReCoRD's evaluation is actually deceptively simple:
     # - Pick the maximum likelihood prediction entity
     # - Evaluate the accuracy and token F1 PER EXAMPLE
     # - Average over all examples
     max_idx = np.argmax(np.array([result[0] for result in results]))
+
+    UNCACHED= doc_id not in cls.result_cache
+    if UNCACHED:
+        cls.result_cache[doc_id] = {}
+        entities= doc["entities"]
+        answers= doc["answers"]
+        cls.result_cache[doc_id]["entities"]= entities
+        cls.result_cache[doc_id]["answers"]= answers
+    else:
+        entities= cls.result_cache[doc_id]["entities"]
+        answers= cls.result_cache[doc_id]["answers"]
 
     prediction = doc["entities"][max_idx]
     gold_label_set = doc["answers"]

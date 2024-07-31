@@ -1435,8 +1435,7 @@ class ConfigurableTask(Task):
 
     def process_results(self, doc_id, doc, results):
         if callable(self.config.process_results):
-            raise NotImplementedError
-            return self.config.process_results(doc, results)
+            return self.config.process_results(self, doc_id, doc, results)
 
         UNCACHED= doc_id not in self.result_cache
         if UNCACHED:
