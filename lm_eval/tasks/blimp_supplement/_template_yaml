@@ -1,5 +1,4 @@
-group: blimp_supplement
-dataset_path: json
+dataset_path: blimp_supplement
 output_type: multiple_choice
 validation_split: train
 doc_to_text: ""
