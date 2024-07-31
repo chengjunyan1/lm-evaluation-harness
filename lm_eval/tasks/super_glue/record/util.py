@@ -46,7 +46,7 @@ def process_results(cls, doc_id, doc, results):
     max_idx = np.argmax(np.array([result[0] for result in results]))
 
     UNCACHED= doc_id not in cls.result_cache
-    if UNCACHED:
+    if UNCACHED or doc is not None:
         cls.result_cache[doc_id] = {}
         entities= doc["entities"]
         answers= doc["answers"]

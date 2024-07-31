@@ -240,7 +240,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
 
     def process_results(self, doc_id, doc, results):
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
             gold = doc["gold"]
             choices = doc["choices"]
@@ -288,7 +288,7 @@ class _SCROLLSSummaryTask(_SCROLLSTask):
 
     def process_results(self, doc_id, doc, results):
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
             outputs = doc["outputs"]
             self.result_cache[doc_id]["outputs"] = outputs
@@ -335,7 +335,7 @@ class Qasper(_SCROLLSTask):
 
     def process_results(self, doc_id, doc, results):
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
             outputs = doc["outputs"]
             self.result_cache[doc_id]["outputs"] = outputs
@@ -428,7 +428,7 @@ class NarrativeQA(_SCROLLSTask):
 
     def process_results(self, doc_id, doc, results):
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
             outputs = doc["outputs"]
             self.result_cache[doc_id]["outputs"] = outputs

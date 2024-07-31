@@ -348,7 +348,7 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            eval_logger.warning(
+            eval_logger.debug(
                 f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
                 ", using test_docs as fewshot_docs but this is not recommended."
             )
@@ -883,6 +883,7 @@ class ConfigurableTask(Task):
             eval_logger.info(f"Loaded cached instances for {self.config.task} on rank {rank}...")
         else:
             self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
+            self.has_result_cache = False # if we are here, we are not using cache
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -1438,7 +1439,7 @@ class ConfigurableTask(Task):
             return self.config.process_results(self, doc_id, doc, results)
 
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
 
         result_dict = {}
@@ -1452,7 +1453,7 @@ class ConfigurableTask(Task):
             }
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             (loglikelihood,) = results
-            if UNCACHED:
+            if UNCACHED or doc is not None:
                 _words = self.count_words(self.doc_to_target(doc))
                 _bytes = self.count_bytes(self.doc_to_target(doc))
                 self.result_cache[doc_id]['_words'] = _words
@@ -1481,7 +1482,7 @@ class ConfigurableTask(Task):
             lls, is_greedy = zip(*results)
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
-            if UNCACHED:
+            if UNCACHED or doc is not None:
                 choices = self.doc_to_choice(doc)
                 self.result_cache[doc_id]['choices'] = choices
             else:
@@ -1504,7 +1505,7 @@ class ConfigurableTask(Task):
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)
 
-            if UNCACHED:
+            if UNCACHED or doc is not None:
                 if self.multiple_input:
                     gold = self.doc_to_text(doc)
                 else:
@@ -1569,7 +1570,7 @@ class ConfigurableTask(Task):
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
         elif self.OUTPUT_TYPE == "generate_until":
-            if UNCACHED:
+            if UNCACHED or doc is not None:
                 gold = self.doc_to_target(doc)
                 self.result_cache[doc_id]["gold"] = gold
             else:
@@ -1579,7 +1580,7 @@ class ConfigurableTask(Task):
             if self.config.doc_to_choice is not None:
                 # If you set doc_to_choice,
                 # it assumes that doc_to_target returns a number.
-                if UNCACHED:
+                if UNCACHED or doc is not None:
                     choices = self.doc_to_choice(doc)
                     gold = choices[gold]
                     self.result_cache[doc_id]["gold"] = gold

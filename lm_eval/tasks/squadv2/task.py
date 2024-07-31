@@ -146,7 +146,7 @@ class SQuAD2(ConfigurableTask):
         continuation, (logprob_unanswerable, _) = results
 
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
             did = doc["id"]
             answers = doc["answers"]

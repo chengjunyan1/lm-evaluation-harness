@@ -68,7 +68,7 @@ class SQUADCompletion(ConfigurableTask):
         # continuation, (logprob_unanswerable, _) = results
         continuation = results
         UNCACHED= doc_id not in self.result_cache
-        if UNCACHED:
+        if UNCACHED or doc is not None:
             self.result_cache[doc_id] = {}
             value = doc["value"]
             self.result_cache[doc_id]["value"] = value

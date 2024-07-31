@@ -13,7 +13,7 @@ def process_results_mc2(cls, doc_id, doc, results):
     lls, is_greedy = zip(*results)
 
     UNCACHED= doc_id not in cls.result_cache
-    if UNCACHED:
+    if UNCACHED or doc is not None:
         cls.result_cache[doc_id] = {}
         labels= doc["mc2_targets"]["labels"]
         cls.result_cache[doc_id]["labels"]= labels
@@ -63,7 +63,7 @@ def process_results_gen(cls, doc_id, doc, results):
 
     
     UNCACHED= doc_id not in cls.result_cache
-    if UNCACHED:
+    if UNCACHED or doc is not None:
         cls.result_cache[doc_id] = {}
         correct_answers= doc["correct_answers"]
         incorrect_answers= doc["incorrect_answers"]
