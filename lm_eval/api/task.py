@@ -1436,7 +1436,8 @@ class ConfigurableTask(Task):
 
     def process_results(self, doc_id, doc, results):
         if callable(self.config.process_results):
-            return self.config.process_results(self, doc_id, doc, results)
+            self.result_cache,ret = self.config.process_results(self.result_cache, doc_id, doc, results)
+            return ret
 
         UNCACHED= doc_id not in self.result_cache
         if UNCACHED or doc is not None:

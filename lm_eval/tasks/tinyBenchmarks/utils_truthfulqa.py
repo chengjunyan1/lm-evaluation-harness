@@ -9,16 +9,16 @@ from rouge_score import rouge_scorer, scoring
 ROUGE_SCORER = None
 
 
-def process_results_mc2(cls, doc_id, doc, results):
+def process_results_mc2(result_cache, doc_id, doc, results):
     lls, is_greedy = zip(*results)
 
-    UNCACHED= doc_id not in cls.result_cache
+    UNCACHED= doc_id not in result_cache
     if UNCACHED or doc is not None:
-        cls.result_cache[doc_id] = {}
+        result_cache[doc_id] = {}
         labels= doc["mc2_targets"]["labels"]
-        cls.result_cache[doc_id]["labels"]= labels
+        result_cache[doc_id]["labels"]= labels
     else:
-        labels= cls.result_cache[doc_id]["labels"]
+        labels= result_cache[doc_id]["labels"]
 
     # Split on the first `0` as everything before it is true (`1`).
     split_idx = list(labels).index(0)
@@ -27,7 +27,7 @@ def process_results_mc2(cls, doc_id, doc, results):
     p_true, p_false = np.exp(np.array(ll_true)), np.exp(np.array(ll_false))
     p_true = p_true / (sum(p_true) + sum(p_false))
 
-    return {"acc": sum(p_true)}
+    return result_cache, {"acc": sum(p_true)}
 
 
 def process_docs_gen(dataset: datasets.Dataset) -> datasets.Dataset:
