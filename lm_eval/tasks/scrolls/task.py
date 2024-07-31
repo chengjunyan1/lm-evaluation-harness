@@ -116,8 +116,8 @@ class _SCROLLSTask(ConfigurableTask):
     PRUNE_MAX_TOKENS = None
     PRUNE_NUM_PROC = None
 
-    def __init__(self, config=None):
-        super().__init__(config={"metadata": {"version": self.VERSION}})
+    def __init__(self, config=None, cache_configs=None):
+        super().__init__(config={"metadata": {"version": self.VERSION}},cache_configs=cache_configs)
         if self.DATASET_NAME is not None:
             self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME)
 
@@ -238,12 +238,21 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
     def higher_is_better(self):
         return {"em": True, "acc": True, "acc_norm": True}
 
-    def process_results(self, doc, results):
-        gold = doc["gold"]
+    def process_results(self, doc_id, doc, results):
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
+            self.result_cache[doc_id] = {}
+            gold = doc["gold"]
+            choices = doc["choices"]
+            self.result_cache[doc_id]["gold"] = gold
+            self.result_cache[doc_id]["choices"] = choices
+        else:
+            gold = self.result_cache[doc_id]["gold"]
+            choices = self.result_cache[doc_id]["choices"]
 
         lls, _ = zip(*results)
         acc = 1.0 if np.argmax(lls) == gold else 0.0
-        completion_len = np.array([float(len(i)) for i in doc["choices"]])
+        completion_len = np.array([float(len(i)) for i in choices])
         acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
 
         return {
@@ -277,11 +286,18 @@ class _SCROLLSSummaryTask(_SCROLLSTask):
             "rougeL": "rouge/rougeL",
         }
 
-    def process_results(self, doc, results):
+    def process_results(self, doc_id, doc, results):
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
+            self.result_cache[doc_id] = {}
+            outputs = doc["outputs"]
+            self.result_cache[doc_id]["outputs"] = outputs
+        else:
+            outputs = self.result_cache[doc_id]["outputs"]
         return {
-            "rouge1": (results[0], doc["outputs"]),
-            "rouge2": (results[0], doc["outputs"]),
-            "rougeL": (results[0], doc["outputs"]),
+            "rouge1": (results[0], outputs),
+            "rouge2": (results[0], outputs),
+            "rougeL": (results[0], outputs),
         }
 
     def construct_requests(self, doc, ctx, **kwargs):
@@ -317,14 +333,22 @@ class Qasper(_SCROLLSTask):
     def _scrolls_metrics(self):
         return {"f1": "f1"}
 
-    def process_results(self, doc, results):
+    def process_results(self, doc_id, doc, results):
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
+            self.result_cache[doc_id] = {}
+            outputs = doc["outputs"]
+            self.result_cache[doc_id]["outputs"] = outputs
+        else:
+            outputs = self.result_cache[doc_id]["outputs"]
+
         if doc["is_yes_no"]:
             prediction = " yes" if results[0] > results[1] else " no"
         elif len(results[0].strip()) == 0:
             prediction = "Unanswerable"
         else:
             prediction = results[0]
-        return {"f1": (prediction, doc["outputs"])}
+        return {"f1": (prediction, outputs)}
 
     def construct_requests(self, doc, ctx, **kwargs):
         if doc["is_yes_no"]:
@@ -402,8 +426,16 @@ class NarrativeQA(_SCROLLSTask):
         # documents
         return self._process_doc(doc)[0]["text"]
 
-    def process_results(self, doc, results):
-        return {"f1": (results[0], doc["outputs"])}
+    def process_results(self, doc_id, doc, results):
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
+            self.result_cache[doc_id] = {}
+            outputs = doc["outputs"]
+            self.result_cache[doc_id]["outputs"] = outputs
+        else:
+            outputs = self.result_cache[doc_id]["outputs"]
+            
+        return {"f1": (results[0], outputs)}
 
     def construct_requests(self, doc, ctx, **kwargs):
         return Instance(
