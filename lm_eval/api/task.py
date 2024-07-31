@@ -884,6 +884,7 @@ class ConfigurableTask(Task):
         else:
             self.download(self.config.dataset_kwargs)  # MOST TIME CONSUMMING!! 
             self.has_result_cache = False # if we are here, we are not using cache
+            self.result_cache = {}
         self._training_docs = None
         self._fewshot_docs = None
 
