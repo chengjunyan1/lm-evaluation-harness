@@ -53,11 +53,12 @@ class SQuAD2(ConfigurableTask):
     DATASET_NAME = None
 
     def __init__(self, config=None, cache_configs=None):
-        if config is None:
-            config = {"metadata": {"version": self.VERSION}}
-        else:
-            config["metadata"] = {"version": self.VERSION}
-        super().__init__(config=config, cache_configs=cache_configs)
+        # if config is None:
+        #     config = {"metadata": {"version": self.VERSION}}
+        # else:
+        #     config["metadata"] = {"version": self.VERSION}
+        # super().__init__(config=config, cache_configs=cache_configs)
+        super().__init__(config={"metadata": {"version": self.VERSION}},cache_configs=cache_configs)
 
     # HF changed squad on us so we have to make sure we aren't running the old one
     assert version.parse(datasets.__version__) >= version.parse(

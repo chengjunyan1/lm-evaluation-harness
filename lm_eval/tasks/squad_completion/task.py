@@ -13,11 +13,12 @@ class SQUADCompletion(ConfigurableTask):
     DATASET_NAME = "default"
 
     def __init__(self, cache_configs, **kwargs):
-        if config is None:
-            config = {"metadata": {"version": self.VERSION}}
-        else:
-            config["metadata"] = {"version": self.VERSION}
-        super().__init__(config=config, cache_configs=cache_configs)
+        # if config is None:
+        #     config = {"metadata": {"version": self.VERSION}}
+        # else:
+        #     config["metadata"] = {"version": self.VERSION}
+        # super().__init__(config=config, cache_configs=cache_configs)
+        super().__init__(config={"metadata": {"version": self.VERSION}},cache_configs=cache_configs)
 
     def has_training_docs(self):
         return False
