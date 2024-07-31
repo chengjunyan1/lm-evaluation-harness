@@ -73,6 +73,7 @@ class SQUADCompletion(ConfigurableTask):
             value = doc["value"]
             self.result_cache[doc_id]["value"] = value
         else:
+            print(self.result_cache[doc_id])
             value = self.result_cache[doc_id]["value"]
 
         return {"contains": contains_score(continuation[0], [value])}
