@@ -38,23 +38,23 @@ def process_docs(dataset: datasets.Dataset):
     return dataset.map(_process_doc)
 
 
-def process_results(cls, doc_id, doc, results):
+def process_results(result_cache, doc_id, doc, results):
     # ReCoRD's evaluation is actually deceptively simple:
     # - Pick the maximum likelihood prediction entity
     # - Evaluate the accuracy and token F1 PER EXAMPLE
     # - Average over all examples
     max_idx = np.argmax(np.array([result[0] for result in results]))
 
-    UNCACHED= doc_id not in cls.result_cache
+    UNCACHED= doc_id not in result_cache
     if UNCACHED or doc is not None:
-        cls.result_cache[doc_id] = {}
+        result_cache[doc_id] = {}
         entities= doc["entities"]
         answers= doc["answers"]
-        cls.result_cache[doc_id]["entities"]= entities
-        cls.result_cache[doc_id]["answers"]= answers
+        result_cache[doc_id]["entities"]= entities
+        result_cache[doc_id]["answers"]= answers
     else:
-        entities= cls.result_cache[doc_id]["entities"]
-        answers= cls.result_cache[doc_id]["answers"]
+        entities= result_cache[doc_id]["entities"]
+        answers= result_cache[doc_id]["answers"]
 
     prediction = doc["entities"][max_idx]
     gold_label_set = doc["answers"]
@@ -65,7 +65,7 @@ def process_results(cls, doc_id, doc, results):
         squad_metrics.compute_exact, prediction, gold_label_set
     )
 
-    return {
+    return result_cache, {
         "f1": f1,
         "em": em,
     }

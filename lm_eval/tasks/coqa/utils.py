@@ -69,8 +69,15 @@ def compute_scores(gold_list, pred):
     }
 
 
-def process_results(doc, results):
-    gold_list = doc_to_target(doc)
+def process_results(result_cache, doc_id, doc, results):
+    
+    UNCACHED= doc_id not in result_cache
+    if UNCACHED or doc is not None:
+        result_cache[doc_id] = {}
+        gold_list = doc_to_target(doc)
+        result_cache[doc_id]["gold_list"]= gold_list
+    else:
+        gold_list= result_cache[doc_id]["gold_list"]
     pred = results[0].strip().split("\n")[0]
 
     scores = compute_scores(gold_list, pred)

@@ -13,7 +13,11 @@ class SQUADCompletion(ConfigurableTask):
     DATASET_NAME = "default"
 
     def __init__(self, cache_configs, **kwargs):
-        super().__init__(config={"metadata": {"version": self.VERSION}},cache_configs=cache_configs)
+        if config is None:
+            config = {"metadata": {"version": self.VERSION}}
+        else:
+            config["metadata"] = {"version": self.VERSION}
+        super().__init__(config=config, cache_configs=cache_configs)
 
     def has_training_docs(self):
         return False
@@ -73,8 +77,6 @@ class SQUADCompletion(ConfigurableTask):
             value = doc["value"]
             self.result_cache[doc_id]["value"] = value
         else:
-            print(self.cache_key)
-            print(self.result_cache[doc_id])
             value = self.result_cache[doc_id]["value"]
 
         return {"contains": contains_score(continuation[0], [value])}
