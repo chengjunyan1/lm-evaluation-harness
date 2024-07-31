@@ -55,7 +55,7 @@ class SQUADCompletion(ConfigurableTask):
             )
         ]
 
-    def process_results(self, doc, results):
+    def process_results(self, doc_id, doc, results):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
@@ -67,8 +67,15 @@ class SQUADCompletion(ConfigurableTask):
         """
         # continuation, (logprob_unanswerable, _) = results
         continuation = results
+        UNCACHED= doc_id not in self.result_cache
+        if UNCACHED:
+            self.result_cache[doc_id] = {}
+            value = doc["value"]
+            self.result_cache[doc_id]["value"] = value
+        else:
+            value = self.result_cache[doc_id]["value"]
 
-        return {"contains": contains_score(continuation[0], [doc["value"]])}
+        return {"contains": contains_score(continuation[0], [value])}
 
     def aggregation(self):
         """
