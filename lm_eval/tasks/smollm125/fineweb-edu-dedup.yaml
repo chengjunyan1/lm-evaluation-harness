@@ -1,0 +1,8 @@
+task: fineweb-edu-dedup
+dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_name: fineweb-edu-dedup
+test_split: test
+metric_list:
+  - metric: perplexity
+    aggregation: mean
+    higher_is_better: false

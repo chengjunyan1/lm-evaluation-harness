@@ -1,0 +1,9 @@
+task: deepmind-math-small
+dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_name: deepmind-math-small
+test_split: test
+doc_to_text: !function utils.process_deepmind_math_small
+metric_list:
+  - metric: perplexity
+    aggregation: mean
+    higher_is_better: false

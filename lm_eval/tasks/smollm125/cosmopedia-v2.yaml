@@ -1,0 +1,9 @@
+task: cosmopedia-v2
+dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_name: cosmopedia-v2
+test_split: test
+doc_to_text: !function utils.process_cosmopedia_v2
+metric_list:
+  - metric: perplexity
+    aggregation: mean
+    higher_is_better: false

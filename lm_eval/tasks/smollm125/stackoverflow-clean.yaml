@@ -1,0 +1,9 @@
+task: stackoverflow-clean
+dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_name: stackoverflow-clean
+test_split: test
+doc_to_text: !function utils.process_stackoverflow_clean
+metric_list:
+  - metric: perplexity
+    aggregation: mean
+    higher_is_better: false
