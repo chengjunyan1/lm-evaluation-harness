@@ -2,6 +2,8 @@ task: deepmind-math-small
 dataset_path: chengjunyan1/smollm-12.5-test
 dataset_name: deepmind-math-small
 test_split: test
+doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
+doc_to_target: "{{' '+text.split(' ')[-1]}}"
 metric_list:
   - metric: perplexity
     aggregation: mean
