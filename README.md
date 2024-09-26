@@ -5,7 +5,7 @@ Edits:
 - Turned off F1 in glue, too slow
 - Pass gab class for loading faster
 - More caching to accelerate loading
-
+- Added smollm125 perplexiy tasks
 
 
 
