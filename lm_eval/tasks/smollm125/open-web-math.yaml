@@ -1,5 +1,5 @@
 task: open-web-math
-dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_path: chengjunyan1/smollm-12.5-test
 dataset_name: open-web-math
 test_split: test
 metric_list:

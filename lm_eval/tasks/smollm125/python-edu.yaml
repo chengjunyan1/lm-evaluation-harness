@@ -1,5 +1,5 @@
 task: python-edu
-dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_path: chengjunyan1/smollm-12.5-test
 dataset_name: python-edu
 test_split: test
 metric_list:

@@ -1,5 +1,5 @@
 task: fineweb-edu-dedup
-dataset_path: chengjunyan1/smollm-12.5-corpus
+dataset_path: chengjunyan1/smollm-12.5-test
 dataset_name: fineweb-edu-dedup
 test_split: test
 metric_list:
