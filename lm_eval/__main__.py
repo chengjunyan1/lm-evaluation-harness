@@ -6,6 +6,7 @@ import sys
 from functools import partial
 from typing import Union
 
+
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger

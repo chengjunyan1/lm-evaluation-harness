@@ -1,0 +1,15 @@
+tag:
+  - smollm125
+task: python-edu
+dataset_path: chengjunyan1/smollm-12.5-test
+dataset_name: python-edu-tiny
+output_type: loglikelihood
+test_split: test
+doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
+doc_to_target: "{{' '+text.split(' ')[-1]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: perplexity
+    aggregation: mean
+    higher_is_better: false
