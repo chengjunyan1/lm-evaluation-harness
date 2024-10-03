@@ -8,7 +8,7 @@ task:
   - stackoverflow-clean-tiny
 metric_list:
   - metric: perplexity
-    aggregation: perplexity
+    aggregation: mean
     higher_is_better: false
   - metric: acc
     aggregation: mean
