@@ -1,6 +1,6 @@
 tag:
-  - smollm125
-task: fineweb-edu-dedup
+  - smollm125-tiny
+task: fineweb-edu-dedup-tiny
 dataset_path: chengjunyan1/smollm-12.5-test
 dataset_name: fineweb-edu-dedup-tiny
 output_type: loglikelihood

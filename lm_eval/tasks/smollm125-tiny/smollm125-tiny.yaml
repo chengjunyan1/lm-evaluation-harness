@@ -1,0 +1,12 @@
+group: smollm125-tiny
+task:
+  - cosmopedia-v2-tiny
+  - python-edu-tiny
+  - fineweb-edu-dedup-tiny
+  - open-web-math-tiny
+  - deepmind-math-small-tiny
+  - stackoverflow-clean-tiny
+aggregate_metric_list:
+  - metric: perplexity
+    aggregation: mean
+    weight_by_size: true

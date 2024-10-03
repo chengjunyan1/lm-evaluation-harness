@@ -1,8 +1,8 @@
 tag:
-  - smollm125
-task: cosmopedia-v2
+  - smollm125-tiny
+task: open-web-math-tiny
 dataset_path: chengjunyan1/smollm-12.5-test
-dataset_name: cosmopedia-v2-tiny
+dataset_name: open-web-math-tiny
 output_type: loglikelihood
 test_split: test
 doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"

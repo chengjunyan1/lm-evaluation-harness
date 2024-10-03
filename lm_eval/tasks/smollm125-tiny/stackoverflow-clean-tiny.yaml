@@ -1,8 +1,8 @@
 tag:
-  - smollm125
-task: open-web-math
+  - smollm125-tiny
+task: stackoverflow-clean-tiny
 dataset_path: chengjunyan1/smollm-12.5-test
-dataset_name: open-web-math-tiny
+dataset_name: stackoverflow-clean-tiny
 output_type: loglikelihood
 test_split: test
 doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
