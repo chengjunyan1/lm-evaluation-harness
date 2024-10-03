@@ -6,7 +6,12 @@ task:
   - open-web-math
   - deepmind-math-small
   - stackoverflow-clean
-aggregate_metric_list:
+metric_list:
   - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: false
+  - metric: acc
     aggregation: mean
-    weight_by_size: true
+    higher_is_better: true
+metadata:
+  version: 0.01
