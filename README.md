@@ -6,6 +6,7 @@ Edits:
 - Pass gab class for loading faster
 - More caching to accelerate loading
 - Added smollm125 perplexiy tasks
+- Added log_fn callback for db logging and daemons
 
 
 

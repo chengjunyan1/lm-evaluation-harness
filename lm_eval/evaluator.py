@@ -76,6 +76,7 @@ def simple_evaluate(
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    log_fn = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -137,6 +138,8 @@ def simple_evaluate(
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     start_date = time.time()
+    log_fn("Setting up cache...",'EVALUATING')
+
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
@@ -245,9 +248,13 @@ def simple_evaluate(
     else:
         task_manager.cache_configs = cache_configs
 
-    task_dict = get_task_dict(tasks, task_manager,cache_requests) ### most time consuming!
+    if lm.rank == 0:
+        log_fn("Loading tasks...",'EVALUATING')
+    task_dict = get_task_dict(tasks, task_manager,cache_requests,log_fn) ### most time consuming!
     t_get_task_dict = time.time()
     eval_logger.info(f" - Time taken for task loading: {t_get_task_dict - t_model_setup:.2f} seconds")
+    if lm.rank == 0:
+        log_fn(f"Tasks loaded, time elapsed: {t_get_task_dict - t_model_setup:.2f} seconds",'EVALUATING')
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
@@ -302,6 +309,8 @@ def simple_evaluate(
 
         return adjusted_task_dict
 
+    if lm.rank == 0:
+        log_fn("Adjusting task configs...",'EVALUATING')
     task_dict = _adjust_config(task_dict)
 
     if check_integrity:
@@ -316,6 +325,8 @@ def simple_evaluate(
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
+    if lm.rank == 0:
+        log_fn("Evaluating...",'EVALUATING')
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
@@ -329,9 +340,13 @@ def simple_evaluate(
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
+        log_fn=log_fn,
     )
+    if lm.rank == 0:
+        log_fn("Evaluation finished","EVALUATING")
 
     if lm.rank == 0:
+        log_fn("Saving results...",'EVALUATING')
         if isinstance(model, str):
             model_name = model
         elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
@@ -388,6 +403,7 @@ def evaluate(
     apply_chat_template: bool = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
+    log_fn=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -447,7 +463,10 @@ def evaluate(
             tokenizer_name=getattr(lm, "tokenizer_name", "")
             if apply_chat_template
             else "",
+            log_fn=log_fn,
         )
+        if lm.rank == 0:
+            log_fn(f"Requests built for {task_output.task_name}","EVALUATING")
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
@@ -477,6 +496,8 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
+        if lm.rank == 0:
+            log_fn(f"Running {reqtype} requests...",'EVALUATING')
         eval_logger.info(f"Running {reqtype} requests")
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
@@ -487,8 +508,12 @@ def evaluate(
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
-        # run requests through model
+        # run requests through model XXX: how to inject the log_fn into the lm object?
+        if lm.rank == 0:
+            lm._model.set_log_fn(log_fn,'EVALUATING')
         resps = getattr(lm, reqtype)(cloned_reqs)
+        if lm.rank == 0:
+            lm._model.reset_log_fn()
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
@@ -501,6 +526,11 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
+
+
+    if lm.rank == 0:
+        log_fn("Processing results...",'EVALUATING')
+        time_start = time.time()
     for task_output in eval_tasks:
         task = task_output.task
         task.apply_filters()
@@ -528,6 +558,11 @@ def evaluate(
                 metrics = task.process_results( # NOTE: Whether the doc id and re corespond to each other 
                     str(doc_id), doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+                if lm.rank == 0:
+                    time_now = time.time()
+                    if time_now - time_start > 15:
+                        log_fn(f"Processing results for {task_output.task_name}...",'EVALUATING')
+                        time_start = time_now
                 if log_samples:
                     raise NotImplementedError("Logging samples is not yet implemented")
                     target = task.doc_to_target(doc)
@@ -594,6 +629,7 @@ def evaluate(
     if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
+        log_fn("Calculating aggregate metrics...",'EVALUATING')
         for task_output in eval_tasks:
             task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
         (

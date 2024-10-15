@@ -10,6 +10,7 @@ from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
+import time
 
 
 eval_logger = logging.getLogger("lm-eval")

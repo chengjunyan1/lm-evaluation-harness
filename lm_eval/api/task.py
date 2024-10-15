@@ -404,6 +404,7 @@ class Task(abc.ABC):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
+        log_fn=None,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -439,6 +440,9 @@ class Task(abc.ABC):
 
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
+        if rank == 0:
+            log_fn(f"Building contexts for {self.config.task}...","EVALUATING")
+
         instances = []
 
         # process all documents when caching is specified for simplicity
@@ -455,10 +459,17 @@ class Task(abc.ABC):
 
         num_docs = len(doc_id_docs)
 
+        if rank == 0:
+            time_start = time.time()
         for doc_id, doc in tqdm(
             doc_id_docs,
             total=num_docs,
         ):
+            if rank == 0:
+                time_now = time.time()
+                if time_now - time_start > 15:
+                    log_fn(f"Building contexts for {self.config.task}...",'EVALUATING')
+                    time_start = time_now
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
                 doc,

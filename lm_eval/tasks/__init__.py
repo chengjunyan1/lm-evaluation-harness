@@ -255,8 +255,10 @@ class TaskManager:
         name_or_config: Optional[Union[str, dict]] = None,
         parent_name: Optional[str] = None,
         update_config: Optional[dict] = None,
+        log_fn=None,
     ) -> Mapping:
         def _load_task(config, task):
+            log_fn(f"Loading task: {task}","EVALUATING")
             if "include" in config:
                 config = {
                     **utils.load_yaml_config(
@@ -281,6 +283,7 @@ class TaskManager:
 
         def _get_group_and_subtask_from_config(config):
             group_name = ConfigurableGroup(config=config)
+            log_fn(f"Loading group: {group_name}","EVALUATING")
             subtask_list = []
             for task in group_name.config["task"]:
                 if isinstance(task, str) and self._name_is_tag(task):
@@ -325,6 +328,7 @@ class TaskManager:
                             update_config=name_or_config
                             if isinstance(name_or_config, dict)
                             else None,
+                            log_fn=log_fn,
                         )
                         return dict(
                             collections.ChainMap(*map(fn, reversed(subtask_list)))
@@ -354,6 +358,7 @@ class TaskManager:
                     fn = partial(
                         self._load_individual_task_or_group,
                         update_config=name_or_config,
+                        log_fn=log_fn,
                     )
                     return dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
                 else:
@@ -391,12 +396,13 @@ class TaskManager:
             self._load_individual_task_or_group,
             parent_name=group_name,
             update_config=update_config,
+            log_fn=log_fn,
         )
         return {
             group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
         }
 
-    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
+    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None,log_fn=None) -> dict:
         """Loads a dictionary of task objects from a list
 
         :param task_list: Union[str, list] = None
@@ -409,12 +415,12 @@ class TaskManager:
             task_list = [task_list]
 
         all_loaded_tasks = dict(
-            collections.ChainMap(*map(self._load_individual_task_or_group, task_list))
+            collections.ChainMap(*map(self._load_individual_task_or_group, task_list,log_fn))
         )
         return all_loaded_tasks
 
-    def load_config(self, config: Dict):
-        return self._load_individual_task_or_group(config)
+    def load_config(self, config: Dict,log_fn=None):
+        return self._load_individual_task_or_group(config,log_fn)
 
     def _get_task_and_group(self, task_dir: str):
         """Creates a dictionary of tasks index with the following metadata,
@@ -577,6 +583,7 @@ def get_task_dict(
     task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
     cache_requests: bool = False,
+    log_fn = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
@@ -617,14 +624,14 @@ def get_task_dict(
             task_manager = TaskManager(cache_requests=cache_requests)
 
         task_name_from_string_dict = task_manager.load_task_or_group(
-            string_task_name_list
+            string_task_name_list,log_fn
         )
 
     for task_element in others_task_name_list:
         if isinstance(task_element, dict):
             task_name_from_config_dict = {
                 **task_name_from_config_dict,
-                **task_manager.load_config(config=task_element),
+                **task_manager.load_config(config=task_element,log_fn=log_fn),
             }
 
         elif isinstance(task_element, Task):
