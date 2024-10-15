@@ -439,6 +439,7 @@ def evaluate(
 
     # get lists of group hierarchy and each type of request
     eval_tasks = get_task_list(task_dict)
+    last_log_time = time.time()
     if not log_samples:
         if not all(
             "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
@@ -465,8 +466,9 @@ def evaluate(
             else "",
             log_fn=log_fn,
         )
-        if lm.rank == 0:
-            log_fn(f"Requests built for {task_output.task_name}","EVALUATING")
+        if lm.rank == 0 and time.time() - last_log_time > 15:
+            last_log_time = time.time()
+            log_fn(f"Building requests ...","EVALUATING")
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
