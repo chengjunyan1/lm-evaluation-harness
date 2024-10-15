@@ -510,10 +510,10 @@ def evaluate(
 
         # run requests through model XXX: how to inject the log_fn into the lm object?
         if lm.rank == 0:
-            lm._model.set_log_fn(log_fn,'EVALUATING')
+            lm._model._set_log_fn(log_fn,'EVALUATING')
         resps = getattr(lm, reqtype)(cloned_reqs)
         if lm.rank == 0:
-            lm._model.reset_log_fn()
+            lm._model._reset_log_fn()
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
