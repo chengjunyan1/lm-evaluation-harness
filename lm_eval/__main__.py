@@ -261,7 +261,6 @@ def parse_eval_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
 
 def cli_evaluate(args: Union[argparse.Namespace, None] = None, gab=None, gab_config=None, log_fn=None) -> None:
     log_fn = log_fn if log_fn is not None else lambda x,y=None: None
-    log_fn("LM-eval evaluation preparing...",'EVALUATING')
     if not args:
         # we allow for args to be passed externally, else we parse them ourselves
         parser = setup_parser()
@@ -304,7 +303,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None, gab=None, gab_con
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    log_fn("Setting up task manager...",'EVALUATING')
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:

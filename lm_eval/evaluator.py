@@ -138,7 +138,7 @@ def simple_evaluate(
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     start_date = time.time()
-    log_fn("Setting up cache...",'EVALUATING')
+    # log_fn("Setting up cache...",'EVALUATING')
 
 
     if delete_requests_cache:

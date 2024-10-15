@@ -1,6 +1,7 @@
 import collections
 import inspect
 import logging
+import time
 import os
 from functools import partial
 from typing import Dict, List, Mapping, Optional, Union
@@ -257,7 +258,9 @@ class TaskManager:
         update_config: Optional[dict] = None,
     ) -> Mapping:
         def _load_task(config, task):
-            self.log_fn(f"Loading task: {task}","EVALUATING")
+            if time.time() - self.last_log_time > 15:
+                self.last_log_time = time.time()
+                self.log_fn(f"Loading task...","EVALUATING")
             if "include" in config:
                 config = {
                     **utils.load_yaml_config(
@@ -282,7 +285,9 @@ class TaskManager:
 
         def _get_group_and_subtask_from_config(config):
             group_name = ConfigurableGroup(config=config)
-            self.log_fn(f"Loading group: {group_name}","EVALUATING")
+            if time.time() - self.last_log_time > 15:
+                self.last_log_time = time.time()
+                self.log_fn(f"Loading group...","EVALUATING")
             subtask_list = []
             for task in group_name.config["task"]:
                 if isinstance(task, str) and self._name_is_tag(task):
@@ -620,6 +625,7 @@ def get_task_dict(
             task_manager = TaskManager(cache_requests=cache_requests)
 
         task_manager.log_fn = log_fn
+        task_manager.last_log_time = time.time()
         task_name_from_string_dict = task_manager.load_task_or_group(
             string_task_name_list
         )
